@@ -7,10 +7,6 @@ import {
 
 
 const API_BASE = 'https://api.dev.devrev-eng.ai/';
-const DON_SERVICE_TYPES = ['identity', 'core', 'integration', 'commerce'];
-interface ComponentsMap {
-	[key: string]: string;
-}
 
 export class App implements AutomationInterface {
 
@@ -26,94 +22,63 @@ export class App implements AutomationInterface {
 		await this.EventListener(events[0]);
 	}
 
-	async createTimelineEntry(method: string, data: object, authorization: string) {
-		const url = API_BASE + method;
-		const resp = await fetch(url, {
-			method: 'POST',
-			headers: {
-				authorization,
-				"content-type": "application/json",
-			},
-			body: JSON.stringify(data),
-		});
-		return resp;
-	}
-
-
-	// async getPartOwners(method: string, partID: string, token: string) {
-
-	// 	//parsing DonV2 to mention users in timeline comment body
-	// 	function parseDonV2(donV2: string) {
-	// 		const donV2Parts = donV2.split(':');
-	// 		if (donV2Parts.length < 4) {
-	// 			throw new Error(`Must have at least 4 parts: ${donV2}`);
-	// 		}
-	// 		if (donV2Parts[0] !== 'don') {
-	// 			throw new Error(`Must have a valid don prefix: ${donV2}`);
-	// 		}
-	// 		if (!DON_SERVICE_TYPES.includes(donV2Parts[1])) {
-	// 			throw new Error(`Must have a valid service map: ${donV2}`);
-	// 		}
-	// 		if (donV2Parts[2] !== 'dvrv-us-1') {
-	// 			throw new Error(`Must have a valid partition: ${donV2}`);
-	// 		}
-	// 		const components = donV2Parts.slice(3);
-	// 		return components.reduce((componentsMap: ComponentsMap, component: string) => {
-	// 			const componentParts = component.split('/');
-	// 			componentsMap[componentParts[0]] = componentParts[1];
-	// 			return componentsMap;
-	// 		}, {});
-	// 	}
-
-	// 	var requestOptions = {
-	// 		method: 'GET',
+	// async addTags(tagsCreateMethod: string, addTagsMethod: string , tags: string[], availableTags: string[], authorization: string) {
+		
+        
+        
+        
+        
+        
+    //     const url = API_BASE + method;
+	// 	const resp = await fetch(url, {
+	// 		method: 'POST',
 	// 		headers: {
-	// 			Authorization: token
+	// 			authorization,
+	// 			"content-type": "application/json",
 	// 		},
-	// 		//redirect: 'follow'
-	// 	};
-
-	// 	let params = {
-	// 		"id": partID,
-	// 	};
-
-	// 	let query = Object.keys(params)
-	// 		.map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
-	// 		.join('&');
-
-	// 	let url = API_BASE + method + '?' + query;
-
-	// 	const owner_string = await fetch(url, requestOptions)
-	// 		.then((response) => (response.json()))
-	// 		.then((result) => {
-	// 			let str = "";
-
-	// 			if ((result.part.owned_by).length == 0) {
-	// 				return str;
-	// 			}
-
-	// 			const {
-	// 				devo,
-	// 				devu
-	// 			} = parseDonV2(result.part.owned_by[0].id);
-	// 			const mentionUser = `don:DEV-${devo}:dev_user:DEVU-${devu}`;
-	// 			str = str + "<" + mentionUser + ">";
-
-	// 			for (let i = 1; i < (result.part.owned_by).length; i++) {
-	// 				const {
-	// 					devo,
-	// 					devu
-	// 				} = parseDonV2(result.part.owned_by[i].id);
-	// 				const mentionUser = `don:DEV-${devo}:dev_user:DEVU-${devu}`;
-	// 				str = str + ", <" + mentionUser + ">";
-	// 			}
-	// 			return str;
-	// 		})
-	// 		.catch(error => console.log('error', error));
-
-	// 	return owner_string;
-
+	// 		body: JSON.stringify(data),
+	// 	});
+	// 	return resp;
 	// }
+
+
+	async getTagsList(method: string, token: string) {
+
+
+		var requestOptions = {
+			method: 'GET',
+			headers: {
+				Authorization: token
+			},
+			//redirect: 'follow'
+		};
+
+		let params = {
+			"limit": 100,
+		};
+
+		let query = Object.keys(params)
+			.map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+			.join('&');
+
+		let url = API_BASE + method + '?' + query;
+
+		const tagsList = await fetch(url, requestOptions)
+			.then((response) => (response.json()))
+			.then((result) => {
+                let str = "";
+
+				for (let i = 0; i < (result.tags).length; i++) {
+					
+					str = str + " " + result.tags[i].name;
+				}
+				return str;
+			})
+			.catch(error => console.log('error', error));
+
+		return tagsList.split(" ");
+
+	}
 
     async getTicketDetails(method: string, ticketID: string, token: string){
         var requestOptions = {
@@ -143,6 +108,18 @@ export class App implements AutomationInterface {
 
         return ticketDetails.split(" ");
     }
+    async createTimelineEntry(method: string, data: object, authorization: string) {
+		const url = API_BASE + method;
+		const resp = await fetch(url, {
+			method: 'POST',
+			headers: {
+				authorization,
+				"content-type": "application/json",
+			},
+			body: JSON.stringify(data),
+		});
+		return resp;
+	}
 
 	async EventListener(event: AutomationEvent) {
 
@@ -163,46 +140,67 @@ export class App implements AutomationInterface {
 
 		// Routes
 		const ticketDetailsAPIMethodPath = 'works.get';
-		const timelineEntryAPIMethodPath = 'timeline-entries.create';
+		const tagsListAPIMethodPath = 'tags.list';
+        const tagsCreateAPIMethodPath = 'tags.create';
+        const addTagsAPIMethodPath = 'works.update';
+        const timelineEntryAPIMethodPath = 'timeline-entries.create';
 
 		const devrevToken = event.input_data.keyrings["devrev"];
-		let detailsString: string[];
-
-
+		let ticketDetails;
 
 		// Fetching title string from ticket using ticket id
+		// try {
+		// 	ticketDetails = await this.getTicketDetails(ticketDetailsAPIMethodPath, ticketID, devrevToken);
+
+		// } catch (error) {
+		// 	console.error('Error: ', error);
+		// }
+
 		try {
-			detailsString = await this.getTicketDetails(ticketDetailsAPIMethodPath, ticketID, devrevToken);
 
-		} catch (error) {
-			console.error('Error: ', error);
-		}
+			if (ticketDetails.length != 0) {
 
-		try {
+			// Get tags list
 
-			// if (owners_string != "") {
+            // const tagList = await this.getTagsList(tagsListAPIMethodPath, devrevToken);
+            
+            // const data = await fetch('../tags.json')
+            //     .then((response) => {
+            //         return response.json()
+            //     });
 
-			// 	// Data for Entry Request API
+            // const keywords = Object.keys(data);
+            // let tagsToBeAdded: string[] = []; 
 
-			// 	const timelineEntryJSON = {
-			// 		object: ticket_id,
-			// 		type: "timeline_comment",
-			// 		body: "Hey " + owners_string + ", this ticket moved to Product Assist stage and may need your attention. You are being notified because you are the part owner of this ticket."
-			// 	}
+            // for(let i = 0; i<keywords.length; i++)
+            // {
+            //     for(let j = 0; j<ticketDetails.length; j++)
+            //     {
+            //         if(keywords[i].toLowerCase() == ticketDetails[j].toLowerCase())
+            //         {
+            //             tagsToBeAdded.push(data[keywords[i]]);
+            //         }
+            //     }
+            // }
+
+				const timelineEntryJSON = {
+					object: ticketID,
+					type: "timeline_comment",
+					body: "Hey , adding automatic tags based on tite and description."
+				}
 
 			// 	// Checking status change and creating timeline entry request if required.
 
-			// 	if (currStatus == "awaiting_product_assist" && oldStatus != "awaiting_product_assist" && workType == "ticket") {
-			// 		const resp = await this.createTimelineEntry(timelineEntryAPIMethodPath, timelineEntryJSON, devrevToken);
+            const resp = await this.createTimelineEntry(timelineEntryAPIMethodPath, timelineEntryJSON, devrevToken);
+            // const resp = await this.addTags(tagsCreateAPIMethodPath, addTagsAPIMethodPath, tagsToBeAdded, tagList, devrevToken);
 
-			// 		if (resp.ok) {
-			// 			console.log("Successfully created timeline entry.");
-			// 		} else {
-			// 			let body = await resp.text();
-			// 			console.error("Error while creating timeline entry: ", resp.status, body);
-			// 		}
-			// 	}
-			// }
+            if (resp.ok) {
+                console.log("Successfully created timeline entry.");
+            } else {
+                let body = await resp.text();
+                console.error("Error while creating timeline entry: ", resp.status, body);
+            }
+			}
 
 		} catch (error) {
 			console.error('Error: ', error);

@@ -1,0 +1,30 @@
+version: "1"
+
+name: "e2e_snap_in"
+description: "A snap-in to add tags automatically to tickets according to title and description keywords."
+
+connections:
+  - name: devrev
+    description: DevRev PAT
+    types:
+      - devrev-pat
+
+event-sources:
+  - name: devrev-webhook
+    description: Event coming from Devrev
+    display_name: Devrev
+    type: devrev-webhook
+    config:
+      event_types:
+        - work_created
+
+functions:
+  - name: adding-tags
+    description: Function containing logic to add tags to the ticket based on title and description keywords.
+
+automations:
+  - name: Add tags to the ticket based on title and description keywords.
+    source: devrev-webhook
+    event_types:
+      - work_created
+    function: adding-tags

@@ -146,16 +146,16 @@ export class App implements AutomationInterface {
         const timelineEntryAPIMethodPath = 'timeline-entries.create';
 
 		const devrevToken = event.input_data.keyrings["devrev"];
-		let ticketDetails : string[] = [];
+		// let ticketDetails : string[] = [];
 
 		// Fetching title string from ticket using ticket id
-		try {
-			ticketDetails = await this.getTicketDetails(ticketDetailsAPIMethodPath, ticketID, devrevToken);
+		// try {
+		// 	ticketDetails = await this.getTicketDetails(ticketDetailsAPIMethodPath, ticketID, devrevToken);
 
-		} catch (error) {
-			console.error('Error: ', error);
-		}
-        console.log(ticketDetails);
+		// } catch (error) {
+		// 	console.error('Error: ', error);
+		// }
+        // console.log(ticketDetails);
 		try {
 
 			//if (ticketDetails.length != 0) {

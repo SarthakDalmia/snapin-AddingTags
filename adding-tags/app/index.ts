@@ -23,11 +23,7 @@ export class App implements AutomationInterface {
 	}
 
 	// async addTags(tagsCreateMethod: string, addTagsMethod: string , tags: string[], availableTags: string[], authorization: string) {
-		
-        
-        
-        
-        
+
         
     //     const url = API_BASE + method;
 	// 	const resp = await fetch(url, {
@@ -42,72 +38,72 @@ export class App implements AutomationInterface {
 	// }
 
 
-	async getTagsList(method: string, token: string) {
+	// async getTagsList(method: string, token: string) {
 
 
-		var requestOptions = {
-			method: 'GET',
-			headers: {
-				Authorization: token
-			},
-			//redirect: 'follow'
-		};
+	// 	var requestOptions = {
+	// 		method: 'GET',
+	// 		headers: {
+	// 			Authorization: token
+	// 		},
+	// 		//redirect: 'follow'
+	// 	};
 
-		let params = {
-			"limit": 100,
-		};
+	// 	let params = {
+	// 		"limit": 100,
+	// 	};
 
-		let query = Object.keys(params)
-			.map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
-			.join('&');
+	// 	let query = Object.keys(params)
+	// 		.map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+	// 		.join('&');
 
-		let url = API_BASE + method + '?' + query;
+	// 	let url = API_BASE + method + '?' + query;
 
-		const tagsList = await fetch(url, requestOptions)
-			.then((response) => (response.json()))
-			.then((result) => {
-                let str = "";
+	// 	const tagsList = await fetch(url, requestOptions)
+	// 		.then((response) => (response.json()))
+	// 		.then((result) => {
+    //             let str = "";
 
-				for (let i = 0; i < (result.tags).length; i++) {
+	// 			for (let i = 0; i < (result.tags).length; i++) {
 					
-					str = str + " " + result.tags[i].name;
-				}
-				return str;
-			})
-			.catch(error => console.log('error', error));
+	// 				str = str + " " + result.tags[i].name;
+	// 			}
+	// 			return str;
+	// 		})
+	// 		.catch(error => console.log('error', error));
 
-		return tagsList.split(" ");
+	// 	return tagsList.split(" ");
 
-	}
+	// }
 
-    async getTicketDetails(method: string, ticketID: string, token: string){
-        var requestOptions = {
-            method: 'GET',
-			headers: {
-				Authorization: token
-			},
-			//redirect: 'follow'
-        };
+    // async getTicketDetails(method: string, ticketID: string, token: string){
+    //     var requestOptions = {
+    //         method: 'GET',
+	// 		headers: {
+	// 			Authorization: token
+	// 		},
+	// 		//redirect: 'follow'
+    //     };
 
-        let params = {
-            "id": ticketID,
-        };
+    //     let params = {
+    //         "id": ticketID,
+    //     };
 
-        let query = Object.keys(params)
-            .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
-            .join('&');
+    //     let query = Object.keys(params)
+    //         .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+    //         .join('&');
 
-        let url = API_BASE + method + '?' + query;
+    //     let url = API_BASE + method + '?' + query;
 
-        let ticketDetails = await fetch(url, requestOptions)
-            .then((response) => (response.json()))
-            .then((result) => {
-                return result.title + " " + result.body;
-            })
-            .catch(error => console.log('error', error));
+    //     let ticketDetails = await fetch(url, requestOptions)
+    //         .then((response) => (response.json()))
+    //         .then((result) => {
+    //             return result.title + " " + result.body;
+    //         })
+    //         .catch(error => console.log('error', error));
 
-        return ticketDetails.split(" ");
-    }
+    //     return ticketDetails.split(" ");
+    // }
     async createTimelineEntry(method: string, data: object, authorization: string) {
 		const url = API_BASE + method;
 		const resp = await fetch(url, {

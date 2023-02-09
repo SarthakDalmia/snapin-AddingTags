@@ -148,7 +148,7 @@ export class App implements AutomationInterface {
                 return result.title + " " + result.body;
             })
             .catch(error => console.log('error', error));
-
+            console.log(ticketDetails);
         return ticketDetails.split(" ");
     }
 
@@ -201,13 +201,18 @@ export class App implements AutomationInterface {
 			if (ticketDetails.length != 0) {
 
 			// Get tags list
-
+               // console.log("1")
             const tagList = await this.getTagsList(tagsListAPIMethodPath, devrevToken);
             
-            const data = await fetch('../tags.json')
-                .then((response) => {
-                    return response.json()
-                });
+            // const data = await fetch('../tags.json')
+            //     .then((response) => {
+            //         return response.json()
+            //     });
+
+            const data = {
+                "flow" : "flow",
+                "ui": "ui"
+            }
 
             const keywords = Object.keys(data);
             let tagsToBeAdded: string[] = []; 

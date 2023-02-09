@@ -61,7 +61,7 @@ export class App implements AutomationInterface {
         for(let i=1; i<tagIDList.length; i++)
         {
             data.push({
-                "id": tagIDList[i]
+                id: tagIDList[i]
             })
         }
 
@@ -118,7 +118,7 @@ export class App implements AutomationInterface {
 				return map;
 			})
 			.catch(error => console.log('error', error));
-
+            console.log(tagsList)
 		return tagsList;
 
 	}
@@ -133,7 +133,7 @@ export class App implements AutomationInterface {
         };
 
         let params = {
-            "id": ticketID,
+            id: ticketID,
         };
 
         let query = Object.keys(params)
@@ -145,6 +145,7 @@ export class App implements AutomationInterface {
         let ticketDetails = await fetch(url, requestOptions)
             .then((response) => (response.json()))
             .then((result) => {
+                console.log(result.title + " " +result.body)
                 return result.title + " " + result.body;
             })
             .catch(error => console.log('error', error));
@@ -240,10 +241,10 @@ export class App implements AutomationInterface {
             const resp = await this.addTags(tagsCreateAPIMethodPath, addTagsAPIMethodPath, tagsToBeAdded, tagList, devrevToken, ticketID);
 
             if (resp.ok) {
-                console.log("Successfully created timeline entry.");
+                console.log("Successfully added tags.");
             } else {
                 let body = await resp.text();
-                console.error("Error while creating timeline entry: ", resp.status, body);
+                console.error("Error while adding tags: ", resp.status, body);
             }
 			}
 

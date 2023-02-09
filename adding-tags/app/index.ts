@@ -22,88 +22,136 @@ export class App implements AutomationInterface {
 		await this.EventListener(events[0]);
 	}
 
-	// async addTags(tagsCreateMethod: string, addTagsMethod: string , tags: string[], availableTags: string[], authorization: string) {
+	async addTags(tagsCreateMethod: string, addTagsMethod: string , tags: string[], tagsList, authorization: string, ticketID: string) {
 
+        const urlToAddTags = API_BASE + addTagsMethod;
+        const urlToCreateTag = API_BASE + tagsCreateMethod;
+        let tagIDList:string[] = []
+        for(let i=0; i<tags.length;i++)
+        {
+            if(tagsList.has(tags[i]))
+            {
+                tagIDList.push(tagsList.get(tags[i]));
+                continue;
+            }
+            else
+            {
+                let tagData = {
+                    name : tags[i]
+                }
+
+                const tagCreated = await fetch(urlToCreateTag, {
+                    method: 'POST',
+                    headers: {
+                        authorization,
+                        "content-type": "application/json",
+                        },
+                    body: JSON.stringify(tagData),
+                    
+                });
+
+                tagIDList.push((tagCreated.text()).id);
+            }
+        }
+
+        let data:Object[] = [];
+
+        data.push({"id": tagIDList[0]})
         
-    //     const url = API_BASE + method;
-	// 	const resp = await fetch(url, {
-	// 		method: 'POST',
-	// 		headers: {
-	// 			authorization,
-	// 			"content-type": "application/json",
-	// 		},
-	// 		body: JSON.stringify(data),
-	// 	});
-	// 	return resp;
-	// }
+        for(let i=1; i<tagIDList.length; i++)
+        {
+            data.push({
+                "id": tagIDList[i]
+            })
+        }
+
+        let tagAddJSON = {
+            id: ticketID,
+            type: "ticket",
+            tags:{
+                set: data,
+            }
+        }
+        
+		const resp = await fetch(urlToAddTags, {
+			method: 'POST',
+			headers: {
+				authorization,
+				"content-type": "application/json",
+			},
+			body: JSON.stringify(tagAddJSON),
+		});
+		return resp;
+	}
 
 
-	// async getTagsList(method: string, token: string) {
+	async getTagsList(method: string, token: string) {
 
 
-	// 	var requestOptions = {
-	// 		method: 'GET',
-	// 		headers: {
-	// 			Authorization: token
-	// 		},
-	// 		//redirect: 'follow'
-	// 	};
+		var requestOptions = {
+			method: 'GET',
+			headers: {
+				Authorization: token
+			},
+			//redirect: 'follow'
+		};
 
-	// 	let params = {
-	// 		"limit": 100,
-	// 	};
+		let params = {
+			"limit": 100,
+		};
 
-	// 	let query = Object.keys(params)
-	// 		.map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
-	// 		.join('&');
+		let query = Object.keys(params)
+			.map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+			.join('&');
 
-	// 	let url = API_BASE + method + '?' + query;
+		let url = API_BASE + method + '?' + query;
 
-	// 	const tagsList = await fetch(url, requestOptions)
-	// 		.then((response) => (response.json()))
-	// 		.then((result) => {
-    //             let str = "";
+		const tagsList = await fetch(url, requestOptions)
+			.then((response) => (response.json()))
+			.then((result) => {
+                let map = new Map();
 
-	// 			for (let i = 0; i < (result.tags).length; i++) {
+				for (let i = 0; i < (result.tags).length; i++) {
 					
-	// 				str = str + " " + result.tags[i].name;
-	// 			}
-	// 			return str;
-	// 		})
-	// 		.catch(error => console.log('error', error));
+					map.set(result.tags[i].name, result.tags[i].id)
+				}
+				return map;
+			})
+			.catch(error => console.log('error', error));
 
-	// 	return tagsList.split(" ");
+		return tagsList;
 
-	// }
+	}
 
-    // async getTicketDetails(method: string, ticketID: string, token: string){
-    //     var requestOptions = {
-    //         method: 'GET',
-	// 		headers: {
-	// 			Authorization: token
-	// 		},
-	// 		//redirect: 'follow'
-    //     };
+    async getTicketDetails(method: string, ticketID: string, token: string){
+        var requestOptions = {
+            method: 'GET',
+			headers: {
+				Authorization: token
+			},
+			//redirect: 'follow'
+        };
 
-    //     let params = {
-    //         "id": ticketID,
-    //     };
+        let params = {
+            "id": ticketID,
+        };
 
-    //     let query = Object.keys(params)
-    //         .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
-    //         .join('&');
+        let query = Object.keys(params)
+            .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+            .join('&');
 
-    //     let url = API_BASE + method + '?' + query;
+        let url = API_BASE + method + '?' + query;
 
-    //     let ticketDetails = await fetch(url, requestOptions)
-    //         .then((response) => (response.json()))
-    //         .then((result) => {
-    //             return result.title + " " + result.body;
-    //         })
-    //         .catch(error => console.log('error', error));
+        let ticketDetails = await fetch(url, requestOptions)
+            .then((response) => (response.json()))
+            .then((result) => {
+                return result.title + " " + result.body;
+            })
+            .catch(error => console.log('error', error));
 
-    //     return ticketDetails.split(" ");
-    // }
+        return ticketDetails.split(" ");
+    }
+
     async createTimelineEntry(method: string, data: object, authorization: string) {
 		const url = API_BASE + method;
 		const resp = await fetch(url, {
@@ -122,10 +170,6 @@ export class App implements AutomationInterface {
 		const s = JSON.stringify(event.payload);
 		console.log(`Checking and creating (if needed) a timeline entry for work updation event!`, s);
 
-		// // Current and Previous Work payloads
-		// const oldStatus = event.payload.work_updated.old_work.stage.name;
-		// const currStatus = event.payload.work_updated.work.stage.name;
-
 		// To get the Work Type
 		const workType = event.payload.work_created.work.type;
 
@@ -142,53 +186,53 @@ export class App implements AutomationInterface {
         const timelineEntryAPIMethodPath = 'timeline-entries.create';
 
 		const devrevToken = event.input_data.keyrings["devrev"];
-		// let ticketDetails : string[] = [];
+		let ticketDetails : string[] = [];
 
 		// Fetching title string from ticket using ticket id
-		// try {
-		// 	ticketDetails = await this.getTicketDetails(ticketDetailsAPIMethodPath, ticketID, devrevToken);
+		try {
+			ticketDetails = await this.getTicketDetails(ticketDetailsAPIMethodPath, ticketID, devrevToken);
 
-		// } catch (error) {
-		// 	console.error('Error: ', error);
-		// }
-        // console.log(ticketDetails);
+		} catch (error) {
+			console.error('Error: ', error);
+		}
+        console.log(ticketDetails);
 		try {
 
-			//if (ticketDetails.length != 0) {
+			if (ticketDetails.length != 0) {
 
 			// Get tags list
 
-            // const tagList = await this.getTagsList(tagsListAPIMethodPath, devrevToken);
+            const tagList = await this.getTagsList(tagsListAPIMethodPath, devrevToken);
             
-            // const data = await fetch('../tags.json')
-            //     .then((response) => {
-            //         return response.json()
-            //     });
+            const data = await fetch('../tags.json')
+                .then((response) => {
+                    return response.json()
+                });
 
-            // const keywords = Object.keys(data);
-            // let tagsToBeAdded: string[] = []; 
+            const keywords = Object.keys(data);
+            let tagsToBeAdded: string[] = []; 
 
-            // for(let i = 0; i<keywords.length; i++)
-            // {
-            //     for(let j = 0; j<ticketDetails.length; j++)
-            //     {
-            //         if(keywords[i].toLowerCase() == ticketDetails[j].toLowerCase())
-            //         {
-            //             tagsToBeAdded.push(data[keywords[i]]);
-            //         }
-            //     }
-            // }
+            for(let i = 0; i<keywords.length; i++)
+            {
+                for(let j = 0; j<ticketDetails.length; j++)
+                {
+                    if(keywords[i].toLowerCase() == ticketDetails[j].toLowerCase())
+                    {
+                        tagsToBeAdded.push(data[keywords[i]]);
+                    }
+                }
+            }
 
-				const timelineEntryJSON = {
-					object: ticketID,
-					type: "timeline_comment",
-					body: "Hey , adding automatic tags based on tite and description."
-				}
+				// const timelineEntryJSON = {
+				// 	object: ticketID,
+				// 	type: "timeline_comment",
+				// 	body: "Hey , adding automatic tags based on tite and description."
+				// }
 
 			// 	// Checking status change and creating timeline entry request if required.
 
-            const resp = await this.createTimelineEntry(timelineEntryAPIMethodPath, timelineEntryJSON, devrevToken);
-            // const resp = await this.addTags(tagsCreateAPIMethodPath, addTagsAPIMethodPath, tagsToBeAdded, tagList, devrevToken);
+            // const resp = await this.createTimelineEntry(timelineEntryAPIMethodPath, timelineEntryJSON, devrevToken);
+            const resp = await this.addTags(tagsCreateAPIMethodPath, addTagsAPIMethodPath, tagsToBeAdded, tagList, devrevToken, ticketID);
 
             if (resp.ok) {
                 console.log("Successfully created timeline entry.");
@@ -196,7 +240,7 @@ export class App implements AutomationInterface {
                 let body = await resp.text();
                 console.error("Error while creating timeline entry: ", resp.status, body);
             }
-			//}
+			}
 
 		} catch (error) {
 			console.error('Error: ', error);

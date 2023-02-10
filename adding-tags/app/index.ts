@@ -108,9 +108,9 @@ export class App implements AutomationInterface {
 
 		const tagsList = await fetch(url, requestOptions)
 			.then((response) => (response.json()))
-			.then((result) => {
+			.then((response) => {
                 let map = new Map();
-
+                let result = JSON.parse(response);
 				for (let i = 0; i < (result.tags).length; i++) {
 					
 					map.set(result.tags[i].name, result.tags[i].id)
@@ -145,8 +145,9 @@ export class App implements AutomationInterface {
         let ticketDetails = await fetch(url, requestOptions)
             .then((response) => (response.json()))
             .then((result) => {
-                console.log(result.title + " " +result.body)
-                return result.title + " " + result.body;
+                let data = JSON.parse(result)
+                console.log(data.title + " " +data.body)
+                return data.title + " " + data.body
             })
             .catch(error => console.log('error', error));
             console.log(ticketDetails);
@@ -192,6 +193,7 @@ export class App implements AutomationInterface {
 		// Fetching title string from ticket using ticket id
 		try {
 			ticketDetails = await this.getTicketDetails(ticketDetailsAPIMethodPath, ticketID, devrevToken);
+            
 
 		} catch (error) {
 			console.error('Error: ', error);

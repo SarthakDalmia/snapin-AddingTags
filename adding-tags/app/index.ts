@@ -179,6 +179,8 @@ export class App implements AutomationInterface {
         const tagsCreateAPIMethodPath = 'tags.create';
         const addTagsAPIMethodPath = 'works.update';
 
+        const globals = event.input_data.global_values;
+
 		const devrevToken = event.input_data.keyrings["devrev"];
 		let ticketDetails : string[] = [];
         if(workType == "ticket"){
@@ -204,12 +206,14 @@ export class App implements AutomationInterface {
                 //         return response.json()
                 //     });
 
-                const data = {
-                    "flow" : "flow",
-                    "ui": "ui"
-                }
+                
 
-                const keywords = Object.keys(data);
+                // const data = {
+                //     "flow" : "flow",
+                //     "ui": "ui"
+                // }
+
+                const keywords = globals.keywords_list;
                 let tagsToBeAdded: string[] = []; 
 
                 // Looking for keywords in the title and description of the ticket
@@ -219,7 +223,7 @@ export class App implements AutomationInterface {
                     {
                         if(keywords[i].toLowerCase() == ticketDetails[j].toLowerCase())
                         {
-                            tagsToBeAdded.push(data[keywords[i]]);
+                            tagsToBeAdded.push(keywords[i]);
                         }
                     }
                 }

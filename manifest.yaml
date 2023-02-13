@@ -18,6 +18,12 @@ event-sources:
       event_types:
         - work_created
 
+globals:
+  - name: keywords_list
+    display_name: Keywords to match
+    description: List of keywords to match with the title and description
+    type: string_list
+
 functions:
   - name: adding-tags
     description: Function containing logic to add tags to the ticket based on title and description keywords.

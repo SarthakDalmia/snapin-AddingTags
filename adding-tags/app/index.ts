@@ -49,7 +49,7 @@ export class App implements AutomationInterface {
                     body: JSON.stringify(tagData),
                     
                 });
-
+                console.log(tagCreated)
                 tagIDList.push((tagCreated.text()).id);
             }
         }
@@ -64,12 +64,13 @@ export class App implements AutomationInterface {
                 id: tagIDList[i]
             })
         }
-
+        console.log(data)
+        console.log(typeof(data))
         let tagAddJSON = {
-            id: ticketID,
-            type: "ticket",
-            tags:{
-                set: data,
+            "id": ticketID,
+            "type": "ticket",
+            "tags":{
+                "set": data,
             }
         }
         
@@ -110,7 +111,7 @@ export class App implements AutomationInterface {
 			.then((response) => (response.json()))
 			.then((response) => {
                 let map = new Map();
-                let result = JSON.parse(response);
+                let result = (response);
 				for (let i = 0; i < (result.tags).length; i++) {
 					
 					map.set(result.tags[i].name, result.tags[i].id)
@@ -143,11 +144,13 @@ export class App implements AutomationInterface {
         let url = API_BASE + method + '?' + query;
 
         let ticketDetails = await fetch(url, requestOptions)
-            .then((response) => (response.json()))
+            .then((response) => {
+                return response.json()
+            })
             .then((result) => {
-                let data = JSON.parse(result)
-                console.log(data.title + " " +data.body)
-                return data.title + " " + data.body
+                let data = (result)
+                console.log(data.work.title + " " +data.work.body)
+                return data.work.title + " " + data.work.body
             })
             .catch(error => console.log('error', error));
             console.log(ticketDetails);
@@ -170,7 +173,7 @@ export class App implements AutomationInterface {
 	async EventListener(event: AutomationEvent) {
 
 		const s = JSON.stringify(event.payload);
-		console.log(`Checking and creating (if needed) a timeline entry for work updation event!`, s);
+		console.log(`Checking and creating (if needed) tags for ticket creation event!`, s);
 
 		// To get the Work Type
 		const workType = event.payload.work_created.work.type;

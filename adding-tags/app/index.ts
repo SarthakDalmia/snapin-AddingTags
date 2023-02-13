@@ -9,24 +9,27 @@ import {
 const API_BASE = 'https://api.dev.devrev-eng.ai/';
 
 export class App implements AutomationInterface {
-
+    //Getting metadata for the Snap-in
 	GetMetadata(): AutomationMetadata {
 		return {
 			name: "E2E SnapIn to automatically Add tags to tickets",
 			version: "0.1"
 		}
 	}
-
+    //main runner function
 	async Run(events: AutomationEvent[]) {
 		console.log("E2E SnapIn to automatically Add tags to tickets");
 		await this.EventListener(events[0]);
 	}
 
+    // Function to create tags not present and add them to ticket
 	async addTags(tagsCreateMethod: string, addTagsMethod: string , tags: string[], tagsList, authorization: string, ticketID: string) {
 
         const urlToAddTags = API_BASE + addTagsMethod;
         const urlToCreateTag = API_BASE + tagsCreateMethod;
         let tagIDList:string[] = []
+
+        // Checking if a tag is present if yes save its id otherwise create a new tag and then save its id
         for(let i=0; i<tags.length;i++)
         {
             if(tagsList.has(tags[i]))
@@ -64,8 +67,8 @@ export class App implements AutomationInterface {
                 id: tagIDList[i]
             })
         }
-        console.log(data)
-        console.log(typeof(data))
+        
+        // Creating the JSON for adding tags
         let tagAddJSON = {
             "id": ticketID,
             "type": "ticket",
@@ -85,7 +88,7 @@ export class App implements AutomationInterface {
 		return resp;
 	}
 
-
+    // Getting the tags list already existing to compare them with the tags we need to create
 	async getTagsList(method: string, token: string) {
 
 
@@ -113,7 +116,7 @@ export class App implements AutomationInterface {
                 let map = new Map();
                 let result = (response);
 				for (let i = 0; i < (result.tags).length; i++) {
-					
+					// saving both name and id of the tags in a map
 					map.set(result.tags[i].name, result.tags[i].id)
 				}
 				return map;
@@ -124,6 +127,7 @@ export class App implements AutomationInterface {
 
 	}
 
+    // Extracting title and body of the created ticket, concatenating them and return them as a string array word wise
     async getTicketDetails(method: string, ticketID: string, token: string){
         var requestOptions = {
             method: 'GET',
@@ -157,19 +161,7 @@ export class App implements AutomationInterface {
         return ticketDetails.split(" ");
     }
 
-    async createTimelineEntry(method: string, data: object, authorization: string) {
-		const url = API_BASE + method;
-		const resp = await fetch(url, {
-			method: 'POST',
-			headers: {
-				authorization,
-				"content-type": "application/json",
-			},
-			body: JSON.stringify(data),
-		});
-		return resp;
-	}
-
+    // Main EventListener
 	async EventListener(event: AutomationEvent) {
 
 		const s = JSON.stringify(event.payload);
@@ -178,9 +170,7 @@ export class App implements AutomationInterface {
 		// To get the Work Type
 		const workType = event.payload.work_created.work.type;
 
-
 		// IDs
-		// const part_id = event.payload.work_updated.work.applies_to_part.id;
 		const ticketID = event.payload.work_created.work.id;
 
 		// Routes
@@ -188,73 +178,66 @@ export class App implements AutomationInterface {
 		const tagsListAPIMethodPath = 'tags.list';
         const tagsCreateAPIMethodPath = 'tags.create';
         const addTagsAPIMethodPath = 'works.update';
-        const timelineEntryAPIMethodPath = 'timeline-entries.create';
 
 		const devrevToken = event.input_data.keyrings["devrev"];
 		let ticketDetails : string[] = [];
+        if(workType == "ticket"){
 
-		// Fetching title string from ticket using ticket id
-		try {
-			ticketDetails = await this.getTicketDetails(ticketDetailsAPIMethodPath, ticketID, devrevToken);
-            
+            // Fetching title string from ticket using ticket id
+            try {
+                ticketDetails = await this.getTicketDetails(ticketDetailsAPIMethodPath, ticketID, devrevToken);
+                
 
-		} catch (error) {
-			console.error('Error: ', error);
-		}
-        console.log(ticketDetails);
-		try {
-
-			if (ticketDetails.length != 0) {
-
-			// Get tags list
-               // console.log("1")
-            const tagList = await this.getTagsList(tagsListAPIMethodPath, devrevToken);
-            
-            // const data = await fetch('../tags.json')
-            //     .then((response) => {
-            //         return response.json()
-            //     });
-
-            const data = {
-                "flow" : "flow",
-                "ui": "ui"
+            } catch (error) {
+                console.error('Error: ', error);
             }
+            
+            try {
 
-            const keywords = Object.keys(data);
-            let tagsToBeAdded: string[] = []; 
+                if (ticketDetails.length != 0) {
 
-            for(let i = 0; i<keywords.length; i++)
-            {
-                for(let j = 0; j<ticketDetails.length; j++)
+                // Get tags list
+                const tagList = await this.getTagsList(tagsListAPIMethodPath, devrevToken);
+                
+                // const data = await fetch('../tags.json')
+                //     .then((response) => {
+                //         return response.json()
+                //     });
+
+                const data = {
+                    "flow" : "flow",
+                    "ui": "ui"
+                }
+
+                const keywords = Object.keys(data);
+                let tagsToBeAdded: string[] = []; 
+
+                // Looking for keywords in the title and description of the ticket
+                for(let i = 0; i<keywords.length; i++)
                 {
-                    if(keywords[i].toLowerCase() == ticketDetails[j].toLowerCase())
+                    for(let j = 0; j<ticketDetails.length; j++)
                     {
-                        tagsToBeAdded.push(data[keywords[i]]);
+                        if(keywords[i].toLowerCase() == ticketDetails[j].toLowerCase())
+                        {
+                            tagsToBeAdded.push(data[keywords[i]]);
+                        }
                     }
                 }
+
+                // Adding the tags corresponding to the keywords 
+                const resp = await this.addTags(tagsCreateAPIMethodPath, addTagsAPIMethodPath, tagsToBeAdded, tagList, devrevToken, ticketID);
+
+                if (resp.ok) {
+                    console.log("Successfully added tags.");
+                } else {
+                    let body = await resp.text();
+                    console.error("Error while adding tags: ", resp.status, body);
+                }
+                }
+
+            } catch (error) {
+                console.error('Error: ', error);
             }
-
-				// const timelineEntryJSON = {
-				// 	object: ticketID,
-				// 	type: "timeline_comment",
-				// 	body: "Hey , adding automatic tags based on tite and description."
-				// }
-
-			// 	// Checking status change and creating timeline entry request if required.
-
-            // const resp = await this.createTimelineEntry(timelineEntryAPIMethodPath, timelineEntryJSON, devrevToken);
-            const resp = await this.addTags(tagsCreateAPIMethodPath, addTagsAPIMethodPath, tagsToBeAdded, tagList, devrevToken, ticketID);
-
-            if (resp.ok) {
-                console.log("Successfully added tags.");
-            } else {
-                let body = await resp.text();
-                console.error("Error while adding tags: ", resp.status, body);
-            }
-			}
-
-		} catch (error) {
-			console.error('Error: ', error);
-		}
+        }
 	}
 }

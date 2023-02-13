@@ -213,7 +213,9 @@ export class App implements AutomationInterface {
                 //     "ui": "ui"
                 // }
 
-                const keywords = globals.keywords_list;
+                const keywordsJSON = globals.keywords_list;
+                const data = JSON.parse(keywordsJSON)
+                let keywords = Object.keys(data)
                 let tagsToBeAdded: string[] = []; 
 
                 // Looking for keywords in the title and description of the ticket
@@ -223,7 +225,7 @@ export class App implements AutomationInterface {
                     {
                         if(keywords[i].toLowerCase() == ticketDetails[j].toLowerCase())
                         {
-                            tagsToBeAdded.push(keywords[i]);
+                            tagsToBeAdded.push(data[keywords[i]]);
                         }
                     }
                 }

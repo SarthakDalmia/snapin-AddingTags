@@ -20,9 +20,8 @@ event-sources:
 
 globals:
   - name: keywords_list
-    display_name: Keywords to match
-    description: List of keywords to match with the title and description
-    type: string_list
+    description: List of keywords to match with the title and description (Enter as a JSON string {"keyword1":"tag1",...}, for eg, {"flow":"flow", "ui":"ui"})
+    devrev_field_type: text
 
 functions:
   - name: adding-tags

@@ -23,7 +23,7 @@ export class App implements AutomationInterface {
 	}
 
     // Function to create tags not present and add them to ticket
-	async addTags(tagsCreateMethod: string, addTagsMethod: string , tags: string[], tagsList, authorization: string, ticketID: string) {
+	async addTags(tagsCreateMethod: string, addTagsMethod: string , tags: string[], tagsList, authorization: string, ticketID: string, tagsListAPIMethodPath: string) {
 
         const urlToAddTags = API_BASE + addTagsMethod;
         const urlToCreateTag = API_BASE + tagsCreateMethod;
@@ -34,7 +34,6 @@ export class App implements AutomationInterface {
         {
             if(tagsList.has(tags[i]))
             {
-                tagIDList.push(tagsList.get(tags[i]));
                 continue;
             }
             else
@@ -51,9 +50,21 @@ export class App implements AutomationInterface {
                         },
                     body: JSON.stringify(tagData),
                     
-                });
-                console.log(tagCreated)
-                tagIDList.push((tagCreated.text()).id);
+                }).catch(error => console.log('error', error));
+                
+                //console.log(tagCreated)
+                // (tagCreated.json()).then((result) => result.id));
+                //tagIDList.push(tagCreated)
+            }
+        }
+
+        const newTagsList = await this.getTagsList(tagsListAPIMethodPath, authorization)
+
+        for(let i=0; i<tags.length;i++)
+        {
+            if(newTagsList.has(tags[i]))
+            {
+                tagIDList.push(newTagsList.get(tags[i]));
             }
         }
 
@@ -67,7 +78,8 @@ export class App implements AutomationInterface {
                 id: tagIDList[i]
             })
         }
-        
+        console.log(tags)
+        console.log(data)
         // Creating the JSON for adding tags
         let tagAddJSON = {
             "id": ticketID,
@@ -200,18 +212,6 @@ export class App implements AutomationInterface {
 
                 // Get tags list
                 const tagList = await this.getTagsList(tagsListAPIMethodPath, devrevToken);
-                
-                // const data = await fetch('../tags.json')
-                //     .then((response) => {
-                //         return response.json()
-                //     });
-
-                
-
-                // const data = {
-                //     "flow" : "flow",
-                //     "ui": "ui"
-                // }
 
                 const keywordsJSON = globals.keywords_list;
                 const data = JSON.parse(keywordsJSON)
@@ -231,7 +231,7 @@ export class App implements AutomationInterface {
                 }
 
                 // Adding the tags corresponding to the keywords 
-                const resp = await this.addTags(tagsCreateAPIMethodPath, addTagsAPIMethodPath, tagsToBeAdded, tagList, devrevToken, ticketID);
+                const resp = await this.addTags(tagsCreateAPIMethodPath, addTagsAPIMethodPath, tagsToBeAdded, tagList, devrevToken, ticketID, tagsListAPIMethodPath);
 
                 if (resp.ok) {
                     console.log("Successfully added tags.");

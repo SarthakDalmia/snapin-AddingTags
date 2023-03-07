@@ -28,7 +28,7 @@ functions:
     description: Function containing logic to add tags to the ticket based on title and description keywords.
 
 automations:
-  - name: Add tags to the ticket based on title and description keywords.
+  - name: tags-automatic-addition
     source: devrev-webhook
     event_types:
       - work_created

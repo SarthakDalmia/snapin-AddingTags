@@ -108,7 +108,6 @@ export class App implements AutomationInterface {
 
     let params = {
       limit: 100,
-      mode: "after",
     };
 
     let query = Object.keys(params)
@@ -121,26 +120,29 @@ export class App implements AutomationInterface {
     await fetch(url, requestOptions)
       .then((response) => response.json())
       .then((response) => {
+        console.log(response);
         for (let i = 0; i < response.tags.length; i++) {
           // saving both name and id of the tags in a map
           tagsList.set(response.tags[i].name, response.tags[i].id);
         }
-        next_cursor = response.next_cursor;
+        if (response.hasOwnProperty(next_cursor))
+          next_cursor = response.next_cursor;
+        else next_cursor = "";
       })
       .catch((error) => console.log("error", error));
 
-    let paramsCursor = {
-      limit: 100,
-      mode: "after",
-      cursor: next_cursor,
-    };
-    let queryCursor = Object.keys(paramsCursor)
-      .map(
-        (k) => encodeURIComponent(k) + "=" + encodeURIComponent(paramsCursor[k])
-      )
-      .join("&");
-    let urlCursor = API_BASE + method + "?" + queryCursor;
     while (next_cursor !== "") {
+      let paramsCursor = {
+        limit: 100,
+        cursor: next_cursor,
+      };
+      let queryCursor = Object.keys(paramsCursor)
+        .map(
+          (k) =>
+            encodeURIComponent(k) + "=" + encodeURIComponent(paramsCursor[k])
+        )
+        .join("&");
+      let urlCursor = API_BASE + method + "?" + queryCursor;
       await fetch(urlCursor, requestOptions)
         .then((response) => response.json())
         .then((response) => {
@@ -148,10 +150,9 @@ export class App implements AutomationInterface {
             // saving both name and id of the tags in a map
             tagsList.set(response.tags[i].name, response.tags[i].id);
           }
-          if(response.hasOwnProperty(next_cursor))
+          if (response.hasOwnProperty(next_cursor))
             next_cursor = response.next_cursor;
-            else
-            next_cursor = ""
+          else next_cursor = "";
         })
         .catch((error) => console.log("error", error));
     }

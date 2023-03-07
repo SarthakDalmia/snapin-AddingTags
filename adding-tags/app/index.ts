@@ -75,8 +75,6 @@ export class App implements AutomationInterface {
         id: tagIDList[i],
       });
     }
-    console.log(tags);
-    console.log(data);
     // Creating the JSON for adding tags
     let tagAddJSON = {
       id: ticketID,
@@ -120,7 +118,6 @@ export class App implements AutomationInterface {
     await fetch(url, requestOptions)
       .then((response) => response.json())
       .then((response) => {
-        console.log(response);
         for (let i = 0; i < response.tags.length; i++) {
           // saving both name and id of the tags in a map
           tagsList.set(response.tags[i].name, response.tags[i].id);
@@ -166,7 +163,6 @@ export class App implements AutomationInterface {
       headers: {
         Authorization: token,
       },
-      //redirect: 'follow'
     };
 
     let params = {
@@ -185,11 +181,9 @@ export class App implements AutomationInterface {
       })
       .then((result) => {
         let data = result;
-        console.log(data.work.title + " " + data.work.body);
         return data.work.title + " " + data.work.body;
       })
       .catch((error) => console.log("error", error));
-    console.log(ticketDetails);
     return ticketDetails.split(" ");
   }
 

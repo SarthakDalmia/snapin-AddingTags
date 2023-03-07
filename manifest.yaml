@@ -1,6 +1,6 @@
 version: "1"
 
-name: "e2e_snap_in"
+name: "snap_in_adding_tags"
 description: "A snap-in to add tags automatically to tickets according to title and description keywords."
 
 connections:
@@ -20,7 +20,7 @@ event-sources:
 
 globals:
   - name: keywords_list
-    description: List of keywords to match with the title and description (Enter as a JSON string {"keyword1":"tag1",...}, for eg, {"flow":"flow", "ui":"ui"})
+    description: List of keywords to match with the title and description (Enter as a JSON string "{"keyword1":"tag1",...}" (without the quotes), for eg, {"flow":"flow", "ui":"ui"})
     devrev_field_type: text
 
 functions:
@@ -28,7 +28,7 @@ functions:
     description: Function containing logic to add tags to the ticket based on title and description keywords.
 
 automations:
-  - name: tags-automatic-addition
+  - name: Adding tags to tickets automaticlly according to keyword matching in title and description of the ticket
     source: devrev-webhook
     event_types:
       - work_created

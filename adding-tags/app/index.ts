@@ -11,13 +11,13 @@ export class App implements AutomationInterface {
   //Getting metadata for the Snap-in
   GetMetadata(): AutomationMetadata {
     return {
-      name: "E2E SnapIn to automatically Add tags to tickets",
+      name: "SnapIn to automatically add tags to tickets",
       version: "0.1",
     };
   }
   //main runner function
   async Run(events: AutomationEvent[]) {
-    console.log("E2E SnapIn to automatically Add tags to tickets");
+    console.log("SnapIn to automatically add tags to tickets");
     await this.EventListener(events[0]);
   }
 
@@ -44,7 +44,7 @@ export class App implements AutomationInterface {
           name: tags[i],
         };
 
-        const tagCreated = await fetch(urlToCreateTag, {
+        await fetch(urlToCreateTag, {
           method: "POST",
           headers: {
             authorization,
@@ -55,11 +55,13 @@ export class App implements AutomationInterface {
       }
     }
 
+    // New tags list with all the tags required
     const newTagsList = await this.getTagsList(
       tagsListAPIMethodPath,
       authorization
     );
 
+    // save the ids of the tags to be added to the ticket
     for (let i = 0; i < tags.length; i++) {
       if (newTagsList.has(tags[i])) {
         tagIDList.push(newTagsList.get(tags[i]));
@@ -95,7 +97,7 @@ export class App implements AutomationInterface {
     return resp;
   }
 
-  // Getting the tags list already existing to compare them with the tags we need to create
+  // Getting the tags list already existing to compare them with the tags we need to add
   async getTagsList(method: string, token: string) {
     var requestOptions = {
       method: "GET",
@@ -128,6 +130,7 @@ export class App implements AutomationInterface {
       })
       .catch((error) => console.log("error", error));
 
+    // recursively calling the api to get a list of tags until we don't have the next_cursor key in the response
     while (next_cursor !== "") {
       let paramsCursor = {
         limit: 100,
@@ -156,7 +159,7 @@ export class App implements AutomationInterface {
     return tagsList;
   }
 
-  // Extracting title and body of the created ticket, concatenating them and return them as a string array word wise
+  // Extracting title and body of the created ticket, concatenating them and return them as an array of words
   async getTicketDetails(method: string, ticketID: string, token: string) {
     var requestOptions = {
       method: "GET",
@@ -207,9 +210,11 @@ export class App implements AutomationInterface {
     const tagsCreateAPIMethodPath = "tags.create";
     const addTagsAPIMethodPath = "works.update";
 
+    // Globals
     const globals = event.input_data.global_values;
 
     const devrevToken = event.input_data.keyrings["devrev"];
+    
     let ticketDetails: string[] = [];
     if (workType == "ticket") {
       // Fetching title string from ticket using ticket id
@@ -225,7 +230,7 @@ export class App implements AutomationInterface {
 
       try {
         if (ticketDetails.length != 0) {
-          // Get tags list
+          // Get tags list to match existing tags against those required to be added
           const tagList = await this.getTagsList(
             tagsListAPIMethodPath,
             devrevToken
@@ -236,7 +241,7 @@ export class App implements AutomationInterface {
           let keywords = Object.keys(data);
           let tagsToBeAdded: string[] = [];
 
-          // Looking for keywords in the title and description of the ticket
+          // Looking for keywords in the title and description of the ticket and creating a list of tags to be added to the ticket
           for (let i = 0; i < keywords.length; i++) {
             for (let j = 0; j < ticketDetails.length; j++) {
               if (keywords[i].toLowerCase() == ticketDetails[j].toLowerCase()) {
